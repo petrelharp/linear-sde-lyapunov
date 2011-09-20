@@ -1,0 +1,97 @@
+\documentclass{amsart}
+
+\renewcommand{\P}{\mathbb{P}}
+\def\diag{\mathrm{diag}}
+
+\begin{document}
+
+This will apply to SDE of the following form:
+\begin{equation}
+  dX_i(t) = \sum_k B_{ik} X_k(t) dt + \sum_{j=1}^r \sum_k G_{jik} X_k(t) dW_j(t)
+\end{equation}
+where $\{W_i(t); 1 \le i \le r \}$ are independent standard Brownian motions.
+
+The algorithm is as follows:
+\begin{itemize}
+    \item Let $\bar X^h_p(x)$ be an approximation to the distribution of $X(h)$ given that $X(0)=x$, for $p \ge 1$.
+    \item Construct a discrete-time process $(R_p,Y_p)$ as follows: start with $R_0=1$ and $Y_0 = 1/n$, 
+        and given $(R_p,Y_p)$,
+    \item let $R_{p+1} = X^h_{p+1}(Y_p)$ and $Y_{p+1} = X^h_{p+1}(Y_p) / R_{p+1}$.
+    \item Run for $T/h$ steps.
+    \item The estimate is $\lambda_h = \frac1T \sum_{p=1}^{T/h} \log R_p$.
+\end{itemize}
+
+
+Here is the information about the approximations.
+In the paper, they present the above SDE in the Stratonovich sense, 
+but in the Appendix, they give the following information about Ito-sense SDE.
+Consider the SDE
+\begin{equation}
+    dX(t) = b(X(t)) dt + \sigma(X(t)) dW(t),
+\end{equation}
+where $X(t)$ and $b(x)$ are $n$--dimensional, and $\sigma(x)=\sigma^i_j(x)$ is an $n \times r$ matrix, for each $x$.
+Denote by $\sigma_j$ the $j$th column of $\sigma$, and for a vector $y(x)$ let $Dy(x)$ be the matrix with $Dy(x)_{ij} = \partial_j y_i(x)$.
+Let $U^j_p$ be (something like) iid standard Gaussians,
+let $\xi^{jk}_p$ be iid with $\P\{ \xi = +1 \} = \P\{ \xi = -1 \} = \frac{1}{2}$, for $j\le k$,
+and define
+\begin{equation}
+  S^{jk}_p = \begin{cases}
+        \frac12 \left( U^j_{p}U^k_{p} + \xi^{jk}_{p} \right) \quad \mbox{if}\; j<k \\
+        \frac12 \left( U^j_{p}U^k_{p} - \xi^{kj}_{p} \right) \quad \mbox{if}\; k>j \\
+        \frac12 \left((U^j_{p})^2 - 1 \right) \quad \mbox{if}\; k=j .
+\end{cases}
+\end{equation}
+Then the {\em Euler scheme} is defined, for a given granularity $h$, at time step $p+1$, by
+\begin{equation}
+    \bar X^h_{p+1} = \bar X^h_p + \sqrt{h} \sum_{j=1}^r \sigma_j(\bar X^h_p) U^j_{p+1} + h b(\bar X^h_p) .
+\end{equation}
+The {\em Mil'shte\u{\i}n scheme} is
+\begin{equation}
+    \bar X^h_{p+1} = \bar X^h_p + \sqrt{h} \sum_{j=1}^r \sigma_j(\bar X^h_p) U^j_{p+1} + h b(\bar X^h_p) 
+            + h \sum_{j,k=1}^r D\sigma_j(\bar X^h_p) \sigma_k(\bar X^h_p) S^{kj}_{p+1} ,
+\end{equation}
+and the second-order scheme I'm calling the {\em Talay scheme} is
+\begin{equation}
+ \begin{split}
+    \bar X^h_{p+1} &= \bar X^h_p + \sqrt{h} \sum_{j=1}^r \sigma_j(\bar X^h_p) U^j_{p+1} + h b(\bar X^h_p) 
+            + h \sum_{j,k=1}^r D\sigma_j(\bar X^h_p) \sigma_k(\bar X^h_p) S^{kj}_{p+1} \\
+         &\qquad   + h^{3/2} \frac12 \sum_{j=1}^r \left( Db(\bar X^h_p) \sigma_j(\bar X^h_p) + D\sigma_j(\bar X^h_p) b(\bar X^h_p) \right) U^j_{p+1} \\
+         &\qquad  + h^2 \left( \sum_{i=1}^n b_i(\bar X^h_p) \partial_i b(\bar X^h_p) 
+            + \frac12 \sum_{i,j=1}^n \left( \sigma(\bar X^h_p) \sigma(\bar X^h_p)^T \right)_{ij} \partial_i \partial_j b(\bar X^h_p) \right) .
+\end{split}
+\end{equation}
+
+In our linear case, $b(x) = Bx$ and $\sigma^i_j(x) = \sum_k G_{jik} x_k$,
+so that $\partial_j b_i(x) = B_{ij}$, $\partial_k \sigma^i_j(x) = G_{jik}$,
+and $(\sigma \sigma^T)_{ij} = \sum_{k\ell m} G_{\ell i k} G_{\ell j m} x_k x_m$,
+so the Euler scheme is
+\begin{equation}
+    \bar X^h_{p+1} = \left( I + \sqrt{h} \sum_{j=1}^r G_j U^j_{p+1} + h B \right) \bar X^h_p ,
+\end{equation}
+the Mil'shte\u{i}n is 
+\begin{equation}
+    \bar X^h_{p+1} = \left( I + \sqrt{h} \sum_{j=1}^r G_j U^j_{p+1} + h B
+            + h \sum_{j,k=1}^r \sum_{\ell=1}^n S^{kj}_{p+1} G_j G_k \right) \bar X^h_p ,
+\end{equation}
+and the Talay is
+\begin{equation}
+ \begin{split}
+    \bar X^h_{p+1} &= \left( I + \sqrt{h} \sum_{j=1}^r G_j U^j_{p+1} + h B
+            + h \sum_{j,k=1}^r S^{kj}_{p+1} G_j G_k \right.  \\
+        &\qquad \left. + h^{3/2} \frac12 \sum_{j,k=1}^r \left( B G_j + G_j B \right)
+            + h^2 \frac12 B^2 \right) \bar X^h_p ,
+ \end{split}
+\end{equation}
+where e.g. $G_j G_k X$ is a matrix product, $(G_j G_k X)_i = \sum_{\ell,m=1}^n G_{ji\ell} G_{k\ell m} X_m$.
+
+Our example,
+\begin{equation}
+  dX_t = \left( \diag(\mu) + D^T \right) X_t dt + \diag(X_t) \Gamma^T dB_t
+\end{equation}
+has
+\begin{align}
+    G{jik} &= \delta_{ik} \Gamma_{jk} \\
+    B &= \diag(\mu) + D^T  .
+\end{align}
+
+\end{document}
